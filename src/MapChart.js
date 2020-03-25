@@ -6,9 +6,10 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faWindowMinimize,
+  faTimes,
   faLightbulb,
   faUsers,
+  faBars,
   faProcedures,
   faHeartbeat,
   faHeartBroken,
@@ -43,6 +44,8 @@ const ONE_M = 1000000;
 class MapChart extends Map {
   constructor(props) {
     super(props);
+    let minimized = false;
+    if(window.innerWidth <= 426) minimized = !minimized;
     this.state = {
       setTotConf: props.setTotConf,
       setTotRec: props.setTotRec,
@@ -53,7 +56,7 @@ class MapChart extends Map {
       logmode: true,
       momentum: "none",
       ppmmode: false,
-      minimized: false,
+      minimized,
       testmode: true,
       testscale: 0,
       dayOffset: 0,
@@ -487,14 +490,19 @@ class MapChart extends Map {
             hidden={that.state.minimized}
             className={"btn-collapse"}
             onClick={() => {that.setState({minimized: true})}}>
-            <FontAwesomeIcon icon={faWindowMinimize}/>
+            <FontAwesomeIcon icon={faTimes}/>
           </button>
 
           <button
             hidden={!that.state.minimized}
             className={"btn-collapse"}
             onClick={() => {that.setState({minimized: false})}}>
-            Open
+            <FontAwesomeIcon icon={faBars} style={{ fontSize: "2em"}}/>
+            <span className="d-inline-block mx-2" style={{
+              top: "-3px",
+              position: "relative",
+              fontSize: "1.2em"
+            }}>Open</span>
           </button>
 
           <div hidden={that.state.minimized}>
@@ -1089,7 +1097,7 @@ class MapChart extends Map {
             <b className="d-block">{name}</b>
             <FontAwesomeIcon icon={faUsers}/> {rounded(Population.ABSOLUTE[name])} &middot;
             <FontAwesomeIcon icon={faBiohazard}/> {rounded(confirmed)} &middot;
-            <FontAwesomeIcon icon={faBolt}/> {rounded(1000000*confirmed/Population.ABSOLUTE[name])} ppm
+            <FontAwesomeIcon icon={faBolt}/> {rounded(ONE_M * confirmed/Population.ABSOLUTE[name])} ppm
             {
               (!this.state.recoveryMode) &&
                 [

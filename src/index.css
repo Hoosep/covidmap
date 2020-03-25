@@ -51,7 +51,7 @@ html, body {
 }
 
 
-@media only screen and (min-width: 426px) and (max-width: 991px) {
+@media only screen and (max-width: 991px) {
   #infography {
     font-size: 0.81em;
     margin-top: 4px;
@@ -91,6 +91,8 @@ html, body {
 
   .controls {
     top: 19px;
+    width: 100%;
+    border-radius:0;
   }
 }
 
@@ -100,11 +102,9 @@ html, body {
 }
 
 .controls.minimized {
-  width: 45px;
-  height: 24px;
-  border-bottom-right-radius: 5px;
+  width: 80px;
+  height: 35px;
   z-index: 999;
-  text-align: center;
 }
 
 .controls.minimized .btn-collapse{
