@@ -18,7 +18,6 @@ import {
   faStopCircle,
   faPauseCircle,
   faQuestion,
-  faQuestionCircle,
   faDatabase,
   faBalanceScale, 
   faBolt,
@@ -37,7 +36,7 @@ import * as Testing from "./Shared/Data/TestingRates";
 import * as Population from "./Shared/Data/Population";
 
 // Utils
-import { rounded } from "./Shared/Utils";
+import { rounded, sleep } from "./Shared/Utils";
 
 const ONE_M = 1000000;
 
@@ -125,40 +124,6 @@ class MapChart extends Map {
         }
       });
 
-    /*
-    Object.values(layers)
-      .filter((layer) => {
-        return typeof layer.options.priority !== "undefined";
-      })
-      .sort((layerA, layerB) => {
-        return layerA.options.priority - layerB.options.priority;
-      })
-      .forEach((layer) => {
-        layer.bringToFront();
-      });*/
-  }
-
-  get_sums(NAME, extension) {
-	  let that = this;
-			  let population_sum = 0;
-			  let confirmed_sum = 0;
-			  let projected_sum = 0;
-			  let active_sum = 0;
-			  let recovered_sum = 0;
-			  let deaths_sum = 0;
-		          for(let c of that.confirmed) {
-                    if (c.name.endsWith(extension)) {
-                      if (!isNaN(Population.ABSOLUTE[c.name])) {
-                        population_sum += Population.ABSOLUTE[c.name];
-                        confirmed_sum += that.confirmed[c.rowId].val;
-                        projected_sum += that.projected[c.rowId].val;
-                        active_sum += that.confirmed[c.rowId].val - that.recoveredAbsByRowId[c.rowId] - that.deathsAbsByRowId[c.rowId];
-                        recovered_sum += that.recovered[c.rowId].val;
-                        deaths_sum += that.deaths[c.rowId].val;
-                      }
-                    }
-                  }
-	  return [population_sum, confirmed_sum, projected_sum, active_sum, recovered_sum, deaths_sum];
   }
 
   reset = () => {
@@ -186,6 +151,7 @@ class MapChart extends Map {
 
   reload = () => {
     let that = this;
+    console.log("this", this);
     that.totConf = 0;
     that.totRec = 0;
     that.totDead = 0;
@@ -344,7 +310,7 @@ class MapChart extends Map {
             let sizeMin7 = "";
             let idx = data.length - 1 + that.state.dayOffset;
             while(that.deaths.length < idx) {
-              await that.sleep(5000);
+              await sleep(5000);
             }
             size =      Math.max(0, data[Math.max(0, idx     - that.state.recoverydays)] - that.deaths[rowId].val);
             sizeMin1 =  Math.max(data[Math.max(0, idx - 1 - that.state.recoverydays)] - that.deaths[rowId].valMin1);
@@ -520,7 +486,7 @@ class MapChart extends Map {
             {
               that.state.momentum === "none" && !that.state.playmode &&
               <Fragment>
-                <span className="small text-muted mr-2">Project testing rates</span>
+                {/*<span className="small text-muted mr-2">Project testing rates</span>
                 <FontAwesomeIcon size={"xs"} icon={faQuestion} title={"Display blue bubbles projecting how many confirmed cases there might be if local testing rate was coinciding with global average."}/>
                 <Form.Control
                   value={this.state.testscale}
@@ -536,7 +502,7 @@ class MapChart extends Map {
                     <option value={2}>x2</option>
                     <option value={3}>x3</option>
                 </Form.Control>
-
+                */}
                 <span className="small text-muted">Speed</span>
                 <Form.Control
                   value={this.state.speedMarkers}
@@ -588,7 +554,6 @@ class MapChart extends Map {
                   let factor = 60;
                   let index = e.nativeEvent.target.selectedIndex;
                   let text = e.nativeEvent.target[index].text
-                  console.log(text);
                   if(text === "Countries with more deaths") factor = 120; 
                   that.setState({
                     mapstyle: Number(e.nativeEvent.target.value),
@@ -783,7 +748,6 @@ class MapChart extends Map {
             }
           `}} />
         }
-          { /*that.reactSimpleMap()*/ }
           { that.leafletMap() }
     </Fragment>
     );
@@ -1130,46 +1094,6 @@ class MapChart extends Map {
           </div>
           <div className="stayAtHomeScoreLabel">
             <span className="stayAtHomeAdvice text-center d-block">{this.stayAtHomeAdvice(active)}</span>
-            <table>
-              <tbody>
-                {/*<tr>
-                  <td valign={"top"}>
-                    <div className={`stayAtHomeScore stayAtHomeScore${stayAtHomeScore}`}>
-                      {stayAtHomeScore}{stayAtHomeScore !== "N/A" ? "/10" : ""}
-                    </div>
-                  </td>
-                  <td>
-                    <div>
-                      <i>Containment Score</i> reflects the spread of COVID19<br />
-                      in the region, based on weighted average growth<br />
-                      of confirmed cases over the past 1, 3 and 7 days.
-                    </div>
-                  </td>
-                </tr>*/}
-                {/*<tr>
-                  <td valign={"top"}>
-                    <div className={`stayAtHomeScore stayAtHomeScore${lifeSaverScore}`}>
-                      {lifeSaverScore}{lifeSaverScore !== "N/A" ? "/10" : ""}
-                    </div>
-                  </td>
-                  <td>
-                    <div>
-                      <i>LifeSaver Score</i> reflects how well this region mitigated<br/>
-                      increasing fatalities from COVID19 in relation to their<br />
-                      local threat level over the past 7 days.
-                    </div>
-                  </td>
-                </tr>*/}
-                {/*<tr>
-                  <td></td>
-                  <td><b>Continue to follow the advice of the WHO<br/>and your local administration.</b></td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td>ppm: confirmed cases per one million people</td>
-                </tr>*/}
-              </tbody>
-            </table>
           </div>
         </div>
       )
@@ -1187,109 +1111,6 @@ class MapChart extends Map {
     }
     return "No active cases detected in this region.";
   };
-
-      /*
-
-        <Marker coordinates={coordinates} key={type + "_" + rowId}>
-          // pill
-          <rect
-              fill={color + transparency}
-              style={this.state.chart === "pill" ? {display: "block"} : {display: "none"}}
-              x={isNaN(size) ? 0 : -size * this.state.factor / 2}
-              y={-this.state.width / 2 * 3}
-              height={(this.state.width < 0) ? 0 : this.state.width * 3}
-              width={isNaN(size) ? 0 : (size * this.state.factor > 0) ? size * this.state.factor : 0}
-              onMouseOver={() => {
-                if (rowId < 0) {
-                  this.state.setTooltipContent(`Could not retrieve data for ${name}.`);
-                } else {
-                  let active = that.confirmed[rowId].val - that.recoveredAbsByRowId[rowId] - that.deathsAbsByRowId[rowId];
-                  this.state.setTooltipContent(
-                      <div>
-                        <b>{name}</b> &nbsp;
-                        <span><FontAwesomeIcon icon={faUsers}/> {rounded(Population.ABSOLUTE[name])}</span><br/>
-                        <span><FontAwesomeIcon
-                            icon={faBiohazard}/> {rounded(that.confirmed[rowId].val)} confirmed (>{rounded(that.projected[rowId].val)} at avg. test rate)</span><br/>
-                        <span><FontAwesomeIcon icon={faProcedures}/> {rounded(active)} active</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartbeat}/> {rounded(that.recovered[rowId].val)} recovered</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartBroken}/> {rounded(that.deaths[rowId].val)} deceased</span>
-                      </div>
-                  );
-                }
-              }}
-              onMouseOut={() => {
-                this.state.setTooltipContent("");
-              }}
-          />
-
-          // bar
-          <rect
-              fill={color + transparency}
-              style={this.state.chart === "bar" ? {display: "block"} : {display: "none"}}
-              x={this.state.width * 3 * 2 - this.state.width * 3 * 1.5}
-              y={isNaN(size) ? 0 : -size * this.state.factor}
-              height={isNaN(size) ? 0 : (size * this.state.factor < 0) ? 0 : size * this.state.factor}
-              width={(this.state.width < 0) ? 0 : this.state.width * 3}
-              onMouseOver={() => {
-                if (rowId < 0) {
-                  this.state.setTooltipContent(`Could not retrieve data for ${name}.`);
-                } else {
-                  let active = that.confirmed[rowId].val - that.recoveredAbsByRowId[rowId] - that.deathsAbsByRowId[rowId];
-                  this.state.setTooltipContent(
-                      <div>
-                        <b>{name}</b> &nbsp;
-                        <span><FontAwesomeIcon icon={faUsers}/> {rounded(Population.ABSOLUTE[name])}</span><br/>
-                        <span><FontAwesomeIcon
-                            icon={faBiohazard}/> {rounded(that.confirmed[rowId].val)} confirmed (>{rounded(that.projected[rowId].val)} at avg. test rate)</span><br/>
-                        <span><FontAwesomeIcon icon={faProcedures}/> {rounded(active)} active</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartbeat}/> {rounded(that.recovered[rowId].val)} recovered</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartBroken}/> {rounded(that.deaths[rowId].val)} deceased</span>
-                      </div>
-                  );
-                }
-              }}
-              onMouseOut={() => {
-                this.state.setTooltipContent("");
-              }}
-          />
-
-          // bubble
-          <circle
-              fill={color + transparency}
-              style={this.state.chart === "pie" ? {display: "block"} : {display: "none"}}
-              r={size && size > 0 ? Math.sqrt(size) * this.state.factor : 0}
-              onMouseOver={() => {
-                if (rowId < 0) {
-                  this.state.setTooltipContent(`Could not retrieve data for ${name}.`);
-                } else {
-                  let active = that.confirmed[rowId].val - that.recoveredAbsByRowId[rowId] - that.deathsAbsByRowId[rowId];
-                  this.state.setTooltipContent(
-                      <div>
-                        <b>{name}</b> &nbsp;
-                        <span><FontAwesomeIcon icon={faUsers}/> {rounded(Population.ABSOLUTE[name])}</span><br/>
-                        <span><FontAwesomeIcon
-                            icon={faBiohazard}/> {rounded(that.confirmed[rowId].val)} confirmed (>{rounded(that.projected[rowId].val)} at avg. test rate)</span><br/>
-                        <span><FontAwesomeIcon icon={faProcedures}/> {rounded(active)} active</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartbeat}/> {rounded(that.recovered[rowId].val)} recovered</span>
-                        &nbsp;<span><FontAwesomeIcon
-                          icon={faHeartBroken}/> {rounded(that.deaths[rowId].val)} deceased</span>
-                      </div>
-                  );
-                }
-              }}
-              onMouseOut={() => {
-                this.state.setTooltipContent("");
-              }}
-          />
-
-          <title>{text}</title>
-        </Marker>
-      */
 
   scale = (value, population) => {
     value = this.scaleIfPillOrBar(value);
@@ -1335,9 +1156,6 @@ class MapChart extends Map {
     return value;
   };
 
-  sleep = async (msec) => {
-    return new Promise(resolve => setTimeout(resolve, msec));
-  }
 
 }
 

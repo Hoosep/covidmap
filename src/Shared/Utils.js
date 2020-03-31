@@ -11,3 +11,7 @@ export const rounded = num => {
     return Math.round(num);
   }
 };
+
+export const sleep = async (msec) => {
+  return new Promise(resolve => setTimeout(resolve, msec));
+}

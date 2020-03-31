@@ -27,7 +27,7 @@ function App() {
 
   return (
     [
-      <Navbar bg="dark" fixed="top" className={"p-0 pl-2"} expand={"xs"}>
+      <Navbar key={0} bg="dark" fixed="top" className={"p-0 pl-2"} expand={"xs"}>
         <Container fluid="md" className="mt-0">
           <Row className="w-100">
             <Col xs={12} sm={6} md={6}>
@@ -61,7 +61,7 @@ function App() {
           </Row>
         </Container>
       </Navbar>,
-      <Container fluid className="w-100 h-100 p-0">
+      <Container key={1} fluid className="w-100 h-100 p-0">
         <Row noGutters="true" className="h-100">
           <Col className="h-100">
             <MapChart
