@@ -30,7 +30,7 @@ html, body {
   padding: 10px;
   border-bottom-right-radius: 5px;
   width: 260px;
-  z-index: 99999;
+  z-index: 990;
   box-shadow: 0px 0px 1px #333;
   overflow: hidden;
   max-height: 500px;

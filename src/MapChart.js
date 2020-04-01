@@ -4,6 +4,8 @@ import { Map, TileLayer, Tooltip, Popup,
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTimes,
@@ -42,9 +44,21 @@ const ONE_M = 1000000;
 
 class MapChart extends Map {
   constructor(props) {
+    
     super(props);
     let minimized = false;
-    if(window.innerWidth <= 426) minimized = !minimized;
+    let zoom = 2;
+    let lat = 14.00;
+    let lng = 0;
+    if(window.innerWidth <= 426) {
+      minimized = !minimized;
+      zoom = 1.5;
+      lat = 10;
+      lng = -90.00;
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const quedateEnTuPutaCasa = urlParams.get('quedateEnTuPutaCasa');
+    console.log("quedateEnTuPutaCasa", quedateEnTuPutaCasa);
     this.state = {
       setTotConf: props.setTotConf,
       setTotRec: props.setTotRec,
@@ -52,6 +66,7 @@ class MapChart extends Map {
       chart: "pie",
       factor: 60,
       width: 2,
+      quedateEnTuPutaCasa,
       logmode: true,
       momentum: "none",
       ppmmode: false,
@@ -66,12 +81,17 @@ class MapChart extends Map {
       datasource: "jh2",
       recoveryMode: false,
       maxSize: 67021,
-      speedMarkers: 500,
+      speedMarkers: 300,
+
+      showModal: false,
+      modalTotDeads: 0,
+      modalTotConfirmed: 0,
+      starbucksDisabledButton: true,
 
       // leaflet map
-      lat: 14.00,
-      lng: 0,
-      zoom: 2.2
+      lat,
+      lng,
+      zoom
     };
 
     this.map = null;
@@ -141,6 +161,8 @@ class MapChart extends Map {
     this.totDead = 0;
 
     this.state.setTotConf(this.totConf);
+    this.state.modalTotDeads = 0;
+    this.state.modalTotConfirmed = 0;
     if(this.state.recoveryMode) {
       this.state.setTotRec(this.totRec);
     } else {
@@ -151,7 +173,6 @@ class MapChart extends Map {
 
   reload = () => {
     let that = this;
-    console.log("this", this);
     that.totConf = 0;
     that.totRec = 0;
     that.totDead = 0;
@@ -250,6 +271,7 @@ class MapChart extends Map {
         avgTested /= countTested;
         avgPopulation /= countPopulation;
         that.state.setTotConf(that.totConf);
+        that.state.modalTotConfirmed = that.totConf;
         for(let i = 0; i < that.confirmed.length; i++) {
           that.confirmed[i].size = (that.confirmed[i].size - minSize) / (that.state.maxSize - minSize);
           that.confirmed[i].momentumLast1 = that.confirmed[i].size - (that.confirmed[i].sizeMin1 - minSize) / (that.state.maxSize - minSize);
@@ -429,6 +451,7 @@ class MapChart extends Map {
           rowId++;
         }
         that.state.setTotDead(that.totDead);
+        that.state.modalTotDeads = that.totDead;
         for(let i = 0; i < that.deaths.length; i++) {
           
           that.deathsAbsByRowId[that.deaths[i].rowId] = that.deaths[i].size;
@@ -513,9 +536,9 @@ class MapChart extends Map {
                     this.setState({ speedMarkers: e.target.value });
                     }
                   }>
-                    <option value={1000}>Slow</option>
-                    <option value={500}>Normal</option>
-                    <option value={50}>Fast</option>
+                    <option value={7000}>Slow</option>
+                    <option value={300}>Normal</option>
+                    <option value={100}>Fast</option>
                 </Form.Control>
               </Fragment>
             }
@@ -574,7 +597,7 @@ class MapChart extends Map {
                 </a>
               </Badge>
               <Badge>
-                <a target="_blank" className="text-secondary" rel="noopener noreferrer" href={"https://github.com/daniel-karl/covid19-map/blob/master/LICENSE.txt"}>
+                <a target="_blank" className="text-secondary" rel="noopener noreferrer" href={"https://github.com/Hoosep/covidmap/blob/master/LICENSE.txt"}>
                   <FontAwesomeIcon icon={faBalanceScale} /> License
                 </a>
               </Badge>
@@ -636,9 +659,9 @@ class MapChart extends Map {
                     this.state.testmode = false;
                     this.state.playmode = true;
                     this.state.playpause = false;
-                    this.state.lat = 0;
-                    this.state.lng = 0;
-                    //this.state.zoom = 2.7;
+                    this.state.lat = 30.5833302;
+                    this.state.lng = 114.2666702;
+                    this.state.zoom = 3;
                     let interval = setInterval(() => {
                       if(!that.state.playmode) {
                         clearInterval(interval);
@@ -656,10 +679,13 @@ class MapChart extends Map {
                           document.getElementsByClassName("midTime")[0].style.display = "none";
                           this.state.playmode = false;
                           this.state.testscale = 0;
+
+                          console.log("Last state", this.state);
                           this.setState({
-                            lat: 0,
-                            lng: 0,
-                            zoom: 1.99
+                            lat: 41.8719406,
+                            lng: 12.56738,
+                            zoom: 2,
+                            showModal: true,
                           });
                         }
                       }
@@ -748,7 +774,61 @@ class MapChart extends Map {
             }
           `}} />
         }
-          { that.leafletMap() }
+        { that.leafletMap() }
+        <Modal
+          show={this.state.showModal} 
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+          onHide={() => this.setState({ showModal: false }) }>
+          <Modal.Body>
+            <Badge variant="danger" className="d-block my-1 py-1" 
+              style={{
+                fontSize: "100%",
+                borderRadius: 0,
+                whiteSpace: "unset"
+              }}>
+              <FontAwesomeIcon icon={faSkull}/> {new Intl.NumberFormat().format(this.state.modalTotDeads)} deaths / muertes
+            </Badge>
+            <Badge variant="secondary" className="d-block my-1 py-1" 
+              style={{
+                fontSize: "100%",
+                borderRadius: 0,
+                whiteSpace: "unset"
+              }}>
+              <FontAwesomeIcon icon={faBiohazard}/> {new Intl.NumberFormat().format(this.state.modalTotConfirmed)} confirmed / confirmados
+            </Badge>
+
+            {
+              this.state.quedateEnTuPutaCasa
+              ? (
+                <Fragment>
+                  <Form.Check
+                    type="checkbox"
+                    className="mt-4 mb-1 text-danger"
+                    onChange={(e) => {
+                      console.log(e.target.checked);
+                      this.setState({
+                        starbucksDisabledButton: !e.target.checked
+                      })
+                    }} 
+                    label={`I've understood that pandemy is not a game. He entendido que la pandemia no es un juego.`}
+                    style={{
+                      fontSize: "0.6em",
+                      whiteSpace: "pre-wrap"
+                    }} />
+                  <Button
+                    variant="success"
+                    disabled={this.state.starbucksDisabledButton}
+                    href="https://www.youtube.com/watch?v=FWwLZN3aRL0">
+                    <span className="d-block">
+                      OBTENER CÓDIGO DE OXXO O STARBUCKS
+                    </span>
+                  </Button>
+                </Fragment>
+              ) : null
+            }
+          </Modal.Body>
+        </Modal>
     </Fragment>
     );
   }
@@ -900,9 +980,23 @@ class MapChart extends Map {
   };
 
   confirmedMarkers = () => {
+
+    let entered = false;
     return (
       this.state.momentum==="none" &&
         this.confirmed.map(({ rowId, name, coordinates, markerOffset, size, val }) => {
+          if (this.state.playmode && name === "Mexico" && val === 1 && entered === false) {
+            entered = true;
+            if(window.innerWidth <= 426) {
+              this.state.lat = 10;
+              this.state.lng = -90;
+              this.state.zoom = 1.5;
+            } else {
+              this.state.lat = 10;
+              this.state.lng = -90;
+              this.state.zoom = 3;
+            }
+          }
           let color = "#000";
           let pop = Population.ABSOLUTE[name];
           let active = val - this.recoveredAbsByRowId[rowId] - this.deathsAbsByRowId[rowId];
@@ -960,13 +1054,13 @@ class MapChart extends Map {
           opacity={0}
           fillOpacity={opacity}
         >
-          <Tooltip
+          {/*<Tooltip
             direction="bottom"
             offset={[0, 20]}
             opacity={1}
             interactive={true}>
             {this.tooltip(name, rowId)}
-          </Tooltip>
+          </Tooltip>*/}
           <Popup>
             {this.tooltip(name, rowId)}
           </Popup>
