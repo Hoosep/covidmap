@@ -58,7 +58,7 @@ class MapChart extends Map {
     }
     const urlParams = new URLSearchParams(window.location.search);
     const quedateEnTuPutaCasa = urlParams.get('quedateEnTuPutaCasa');
-    console.log("quedateEnTuPutaCasa", quedateEnTuPutaCasa);
+    const noCovid = urlParams.get("noCovid");
     this.state = {
       setTotConf: props.setTotConf,
       setTotRec: props.setTotRec,
@@ -67,6 +67,7 @@ class MapChart extends Map {
       factor: 60,
       width: 2,
       quedateEnTuPutaCasa,
+      noCovid,
       logmode: true,
       momentum: "none",
       ppmmode: false,
@@ -799,7 +800,7 @@ class MapChart extends Map {
             </Badge>
 
             {
-              this.state.quedateEnTuPutaCasa
+              this.state.quedateEnTuPutaCasa || this.state.noCovid
               ? (
                 <Fragment>
                   <Form.Check
