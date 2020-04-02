@@ -59,6 +59,12 @@ html, body {
   }
 }
 
+@media only screen and (max-width: 320px){
+  .timeline {
+    font-size: 0.7em!important;
+  }
+}
+
 @media only screen and (max-width: 425px){
   .navbar-brand{
     display: block!important;
